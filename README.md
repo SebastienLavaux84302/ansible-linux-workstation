@@ -31,7 +31,7 @@ roles/
 docs/
 ```
 
-La version publique est une sélection anonymisée du projet : elle ne contient pas les inventaires réels, les variables d'environnement de l'infrastructure initiale ni les fichiers binaires fournis par des tiers. D'autres rôles du projet initial ne sont pas inclus dans cette première version, dans l'attente d'une revue et d'une généralisation complémentaires.
+Ce dépôt est un projet expérimental présenté à titre personnel, conçu comme un espace d'apprentissage et d'expérimentation autour d'Ansible et de l'Infrastructure as Code. Il constitue aussi un élément de mon portfolio pour mettre en valeur mes compétences en automatisation, en administration Linux et en gestion d'environnements déconnectés.
 
 ## Prérequis
 
