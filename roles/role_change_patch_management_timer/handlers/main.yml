@@ -1,0 +1,6 @@
+---
+# handlers file for role_change_patch_management_timer
+- name: systemctl daemon-reload
+  shell:
+    cmd: systemctl daemon-reload
+  become: true

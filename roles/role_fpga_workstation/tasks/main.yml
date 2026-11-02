@@ -1,0 +1,35 @@
+---
+# L'activation précède toute installation. Le diagnostic seul ne l'effectue pas.
+- name: Activer les dépôts Satellite avant toute installation
+  ansible.builtin.import_tasks: 00_repositories.yml
+  tags: [repositories, packages, gnome, xrdp, bureau]
+
+- name: Vérifier les dépôts DNF avant toute installation
+  ansible.builtin.import_tasks: 00_diagnostics.yml
+  tags: [diagnostic, packages, gnome, xrdp, bureau]
+
+- name: Installer GNOME
+  ansible.builtin.import_tasks: 01_gnome.yml
+  tags: [gnome]
+
+- name: Installer et activer xrdp
+  ansible.builtin.import_tasks: 02_xrdp.yml
+  tags: [xrdp]
+
+- name: Installer les paquets de la station de travail
+  ansible.builtin.import_tasks: 04_packages.yml
+  tags: [packages]
+
+- name: Configurer le pare-feu RDP
+  ansible.builtin.import_tasks: 03_firewall.yml
+  tags: [firewall]
+
+- name: Personnaliser et verrouiller le bureau GNOME
+  ansible.builtin.import_tasks: 06_personnalisation_bureau.yml
+  when: fpga_personnaliser_bureau | default(false) | bool
+  become: true
+  tags: [bureau]
+
+- name: Afficher les options du déploiement
+  ansible.builtin.import_tasks: 05_reboot_info.yml
+  tags: [summary]

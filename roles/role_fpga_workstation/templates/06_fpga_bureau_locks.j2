@@ -1,0 +1,23 @@
+# Géré par Ansible - rôle role_fpga_workstation
+/org/gnome/desktop/background/picture-uri
+{% if 'picture-uri-dark' in fpga_bureau_background_keys.stdout_lines %}
+/org/gnome/desktop/background/picture-uri-dark
+{% endif %}
+/org/gnome/desktop/background/picture-options
+/org/gnome/desktop/background/primary-color
+/org/gnome/desktop/background/secondary-color
+/org/fedorahosted/background-logo-extension/logo-file
+{% if 'logo-file-dark' in (fpga_bureau_logo_keys.stdout_lines | default([])) %}
+/org/fedorahosted/background-logo-extension/logo-file-dark
+{% endif %}
+{% if fpga_bureau_gestion_energie | bool %}
+/org/gnome/settings-daemon/plugins/power/power-button-action
+/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type
+/org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type
+{% endif %}
+{% if fpga_bureau_desactiver_confirmation_deconnexion | bool and 'logout-prompt' in (fpga_bureau_session_keys.stdout_lines | default([])) %}
+/org/gnome/gnome-session/logout-prompt
+{% endif %}
+{% if fpga_bureau_verrouiller_animations | bool and 'enable-animations' in (fpga_bureau_interface_keys.stdout_lines | default([])) %}
+/org/gnome/desktop/interface/enable-animations
+{% endif %}

@@ -1,0 +1,25 @@
+# Données locales : exemples versionnés explicitement ci-dessous.
+/inventories/*
+!/inventories/example.yml
+/group_vars/
+/host_vars/
+*.vault
+*.vault.yml
+.vault_pass*
+.vault-password*
+*.kdbx
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.log
+*.retry
+**/files/wallpaper.png
+**/files/wallpaper.jpg
+**/files/logo.png
+.env
+.env.*
+__pycache__/
+.pytest_cache/
+.venv/

@@ -1,0 +1,15 @@
+---
+# tasks file for dict_role_satellite_connect
+#
+- name: "Check tasks {{ ansible_distribution }}"
+  include_tasks: pre_include_tasks.yml
+
+- name: "Combine dictionaries"
+  import_tasks: combine.yml
+
+- name: "Check mandatory variables"
+  import_tasks: check_vars.yml
+
+- name: "Include tasks for {{ ansible_distribution }}"
+  import_tasks: include_tasks.yml
+  when: continue_role

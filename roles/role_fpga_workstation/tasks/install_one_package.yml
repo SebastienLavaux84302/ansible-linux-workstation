@@ -1,0 +1,15 @@
+---
+- name: "[{{ ansible_loop.index }}/{{ ansible_loop.length }}] Installer {{ fpga_current_package }}"
+  ansible.builtin.dnf:
+    name: "{{ fpga_current_package }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  register: fpga_single_package_result
+
+- name: "[{{ ansible_loop.index }}/{{ ansible_loop.length }}] Résultat pour {{ fpga_current_package }}"
+  ansible.builtin.debug:
+    msg: >-
+      {{ fpga_current_package }} :
+      {{ 'simulation terminée' if ansible_check_mode else
+         ('transaction effectuée' if fpga_single_package_result.changed else 'déjà présent') }}.

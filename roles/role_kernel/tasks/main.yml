@@ -1,0 +1,11 @@
+---
+# tasks file for role_kernel
+#
+- name: copy file disable rescue
+  copy:
+    src: 99-disable-rescue.conf
+    dest: /etc/dracut.conf.d/99-disable-rescue.conf
+    owner: root
+    group: root
+    mode: '0600'
+  become: true

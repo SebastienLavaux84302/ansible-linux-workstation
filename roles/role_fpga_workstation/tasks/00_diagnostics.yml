@@ -1,0 +1,69 @@
+---
+- name: Vérifier le format des dépôts configurés
+  ansible.builtin.assert:
+    that:
+      - fpga_repos is sequence
+      - fpga_repos is not string
+      - fpga_repos is not mapping
+      - (fpga_repos | select("string") | list | length) == (fpga_repos | length)
+      - not (fpga_exclusive_repos | bool) or (fpga_repos | length > 0)
+    fail_msg: >-
+      fpga_repos doit être une liste d'ID DNF. Avec fpga_exclusive_repos=true,
+      elle ne peut pas être vide. Relever les ID avec dnf repolist --all.
+
+# Les options de dépôt sont identiques pour les commandes de diagnostic et DNF.
+- name: Préparer les options DNF pour ce rôle
+  ansible.builtin.set_fact:
+    fpga_dnf_repo_options: >-
+      {{ (['--disablerepo=*'] if (fpga_exclusive_repos | bool) else [])
+         + (['--enablerepo=' ~ (fpga_repos | join(','))] if (fpga_repos | length > 0) else []) }}
+
+- name: Lister les dépôts DNF utilisables pour le rôle
+  ansible.builtin.command:
+    argv: "{{ ['dnf'] + fpga_dnf_repo_options + ['repolist', '--enabled'] }}"
+  register: fpga_dnf_repolist
+  changed_when: false
+  check_mode: false
+  environment:
+    LC_ALL: C
+
+- name: Afficher les dépôts DNF utilisables
+  ansible.builtin.debug:
+    var: fpga_dnf_repolist.stdout_lines
+
+- name: Rafraîchir les métadonnées des dépôts utilisables
+  ansible.builtin.command:
+    argv: "{{ ['dnf'] + fpga_dnf_repo_options + ['makecache', '--refresh'] }}"
+  register: fpga_dnf_makecache
+  changed_when: false
+  when:
+    - fpga_refresh_metadata | bool
+    - not ansible_check_mode
+  environment:
+    LC_ALL: C
+
+- name: Afficher les avertissements de rafraîchissement DNF
+  ansible.builtin.debug:
+    var: fpga_dnf_makecache.stderr_lines
+  when:
+    - fpga_dnf_makecache is not skipped
+    - fpga_dnf_makecache.stderr | default('') | length > 0
+
+- name: Chercher quelques paquets dans les dépôts utilisables
+  ansible.builtin.command:
+    argv: "{{ ['dnf'] + fpga_dnf_repo_options + ['-q', 'repoquery', '--available'] + fpga_diagnostic_packages }}"
+  register: fpga_dnf_package_probe
+  changed_when: false
+  when: fpga_diagnostic_packages | length > 0
+  check_mode: false
+  environment:
+    LC_ALL: C
+
+- name: Afficher le résultat de la recherche
+  ansible.builtin.debug:
+    msg:
+      - "Paquets recherchés : {{ fpga_diagnostic_packages }}"
+      - "Paquets visibles : {{ fpga_dnf_package_probe.stdout_lines | default([]) }}"
+      - "Avertissements DNF : {{ fpga_dnf_package_probe.stderr_lines | default([]) }}"
+      - "Une liste vide ou incomplète nécessite de vérifier dépôts, Content View et filtres."
+  when: fpga_diagnostic_packages | length > 0

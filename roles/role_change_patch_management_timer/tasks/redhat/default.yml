@@ -1,0 +1,81 @@
+---
+# tasks file for role_change_patch_management_timer
+#
+- block:
+    - name: Package installation
+      package:
+        name: dnf-automatic
+        state: latest
+      become: true
+
+    - name: Change Upgrade type security or default
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^upgrade_type.*="
+        line: "upgrade_type = {{ dict_role_change_patch_management_timer.patch_upgrade_type }}"
+      become: true
+
+    - name: Change reboot
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "^reboot.*="
+        line: "reboot = {{ dict_role_change_patch_management_timer.patch_reboot }}"
+      become: true
+
+    - name: delete old reboot line
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "reboot = never"
+        line: ""
+      become: true
+
+    - name: apply patch
+      lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: "apply_updates.*="
+        line: "apply_updates = yes"
+      become: true
+
+    - name: Enable timer
+      systemd_service:
+        name: dnf-automatic.timer
+        state: started
+        enabled: true
+      become: true
+
+    - name: Delete old timer
+      lineinfile:
+        path: /etc/systemd/system/timers.target.wants/dnf-automatic.timer
+        regexp: "^OnCalendar="
+        line: "#OnCalendar"
+      become: true
+      notify: systemctl daemon-reload
+
+    - name: Delete delay
+      lineinfile:
+        path: /etc/systemd/system/timers.target.wants/dnf-automatic.timer
+        regexp: "RandomizedDelaySec=60m"
+        line: "#RandomizedDelaySec=60m"
+      become: true
+      notify: systemctl daemon-reload
+
+    - name: Directory creation
+      file:
+        path: /etc/systemd/system/dnf-automatic.timer.d
+        owner: root
+        group: root
+        mode: '0750'
+        state: directory
+      become: true
+
+    - name: Change patch management timer
+      template:
+        src: dnf-automatic.timer.j2
+        dest: /etc/systemd/system/dnf-automatic.timer.d/override.conf
+        owner: root
+        group: root
+        mode: '0640'
+      become: true
+      notify: systemctl daemon-reload
+
+  when: dict_role_change_patch_management_timer.patch == true

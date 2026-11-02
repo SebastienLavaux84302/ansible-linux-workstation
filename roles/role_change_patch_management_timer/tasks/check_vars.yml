@@ -1,0 +1,15 @@
+---
+- name: "Check: Mandatory vars"
+  assert:
+    that:
+      - dict_role_change_patch_management_timer.patch_timer | length > 0
+      - dict_role_change_patch_management_timer.patch is defined
+      - dict_role_change_patch_management_timer.patch_upgrade_type | length > 0
+      - dict_role_change_patch_management_timer.patch_reboot | length > 0
+    fail_msg: "failed"
+  register: result_assert
+  ignore_errors: yes
+
+- name: Set continue_role based on assert result
+  set_fact:
+    continue_role: "{{ not result_assert.failed }}"

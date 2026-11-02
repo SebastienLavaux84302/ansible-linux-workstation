@@ -1,0 +1,17 @@
+---
+- name: Installer les paquets xrdp
+  ansible.builtin.dnf:
+    name: "{{ fpga_xrdp_packages }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  when:
+    - fpga_install_xrdp | bool
+    - fpga_xrdp_packages | length > 0
+
+- name: Activer et démarrer xrdp
+  ansible.builtin.systemd:
+    name: xrdp
+    state: started
+    enabled: true
+  when: fpga_install_xrdp | bool

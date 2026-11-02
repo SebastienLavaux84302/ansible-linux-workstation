@@ -1,0 +1,32 @@
+# Géré par Ansible - rôle role_fpga_workstation
+[org/gnome/desktop/background]
+picture-uri='{{ fpga_wallpaper_uri }}'
+{% if 'picture-uri-dark' in fpga_bureau_background_keys.stdout_lines %}
+picture-uri-dark='{{ fpga_wallpaper_uri }}'
+{% endif %}
+picture-options='zoom'
+primary-color='#000000'
+secondary-color='#FFFFFF'
+
+[org/fedorahosted/background-logo-extension]
+logo-file='{{ fpga_logo_chemin }}'
+{% if 'logo-file-dark' in (fpga_bureau_logo_keys.stdout_lines | default([])) %}
+logo-file-dark='{{ fpga_logo_chemin }}'
+{% endif %}
+
+{% if fpga_bureau_gestion_energie | bool %}
+[org/gnome/settings-daemon/plugins/power]
+power-button-action='nothing'
+sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
+
+{% endif %}
+{% if fpga_bureau_desactiver_confirmation_deconnexion | bool and 'logout-prompt' in (fpga_bureau_session_keys.stdout_lines | default([])) %}
+[org/gnome/gnome-session]
+logout-prompt=false
+
+{% endif %}
+{% if fpga_bureau_definir_extensions_par_defaut | bool %}
+[org/gnome/shell]
+enabled-extensions=[{% for extension in fpga_bureau_extensions_par_defaut %}{{ extension | to_json }}{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endif %}

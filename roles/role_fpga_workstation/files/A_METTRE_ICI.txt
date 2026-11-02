@@ -1,0 +1,4 @@
+Déposer ici vos deux vrais fichiers :
+- wallpaper.png (ou wallpaper.jpg et modifier fpga_wallpaper_fichier)
+- logo.png
+Les fichiers d'image ne sont pas fournis dans cette archive.

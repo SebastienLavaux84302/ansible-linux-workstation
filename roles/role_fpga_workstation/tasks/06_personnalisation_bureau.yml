@@ -1,0 +1,236 @@
+---
+- name: Vérifier les noms des fichiers de personnalisation
+  ansible.builtin.assert:
+    that:
+      - fpga_wallpaper_fichier | basename == fpga_wallpaper_fichier
+      - fpga_logo_fichier | basename == fpga_logo_fichier
+      - fpga_wallpaper_fichier != fpga_logo_fichier
+      - fpga_wallpaper_fichier | length > 0
+      - fpga_logo_fichier | length > 0
+      - "\"'\" not in fpga_wallpaper_fichier"
+      - "\"'\" not in fpga_logo_fichier"
+      - "\"'\" not in fpga_bureau_repertoire"
+      - "'\n' not in fpga_bureau_repertoire"
+      - fpga_bureau_repertoire.startswith('/')
+    fail_msg: >-
+      Utiliser des noms de fichier simples, différents, placés dans files/,
+      et un répertoire absolu sans apostrophe ni saut de ligne.
+
+- name: Vérifier la présence des images sur le contrôleur Ansible
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/{{ item }}"
+  delegate_to: localhost
+  become: false
+  loop:
+    - "{{ fpga_wallpaper_fichier }}"
+    - "{{ fpga_logo_fichier }}"
+  register: fpga_bureau_sources
+
+- name: Exiger les deux images de personnalisation
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isreg | default(false)
+    fail_msg: >-
+      Fichier manquant : {{ role_path }}/files/{{ item.item }}.
+      Ajouter l'image sur le contrôleur avant de relancer le rôle.
+  loop: "{{ fpga_bureau_sources.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Installer dconf et l'extension GNOME Background Logo depuis les dépôts
+  ansible.builtin.dnf:
+    name:
+      - dconf
+      - gnome-shell-extension-background-logo
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | default(false) | bool) else [] }}"
+
+- name: Lire les clés disponibles pour le fond GNOME
+  ansible.builtin.command:
+    argv: [gsettings, list-keys, org.gnome.desktop.background]
+  register: fpga_bureau_background_keys
+  changed_when: false
+  check_mode: false
+
+- name: Vérifier les clés nécessaires au fond d'écran
+  ansible.builtin.assert:
+    that:
+      - "'picture-uri' in fpga_bureau_background_keys.stdout_lines"
+      - "'picture-options' in fpga_bureau_background_keys.stdout_lines"
+      - "'primary-color' in fpga_bureau_background_keys.stdout_lines"
+      - "'secondary-color' in fpga_bureau_background_keys.stdout_lines"
+    fail_msg: >-
+      Le schéma org.gnome.desktop.background ne présente pas toutes les clés
+      attendues. Vérifier les paquets et la version de GNOME.
+
+- name: Lire les clés de l'extension Background Logo
+  ansible.builtin.command:
+    argv: [gsettings, list-keys, org.fedorahosted.background-logo-extension]
+  register: fpga_bureau_logo_keys
+  changed_when: false
+  check_mode: false
+  when: not ansible_check_mode
+
+- name: Vérifier la clé du logo
+  ansible.builtin.assert:
+    that:
+      - "'logo-file' in fpga_bureau_logo_keys.stdout_lines"
+    fail_msg: L'extension Background Logo ne fournit pas la clé logo-file.
+  when: not ansible_check_mode
+
+- name: Lire les clés de gestion de l'énergie
+  ansible.builtin.command:
+    argv: [gsettings, list-keys, org.gnome.settings-daemon.plugins.power]
+  register: fpga_bureau_power_keys
+  changed_when: false
+  check_mode: false
+  when: fpga_bureau_gestion_energie | bool
+
+- name: Vérifier les clés d'énergie demandées
+  ansible.builtin.assert:
+    that:
+      - "'power-button-action' in fpga_bureau_power_keys.stdout_lines"
+      - "'sleep-inactive-ac-type' in fpga_bureau_power_keys.stdout_lines"
+      - "'sleep-inactive-battery-type' in fpga_bureau_power_keys.stdout_lines"
+    fail_msg: Certaines clés GNOME de gestion de l'énergie sont absentes.
+  when: fpga_bureau_gestion_energie | bool
+
+- name: Rechercher la clé de confirmation de déconnexion
+  ansible.builtin.command:
+    argv: [gsettings, list-keys, org.gnome.SessionManager]
+  register: fpga_bureau_session_keys
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: fpga_bureau_desactiver_confirmation_deconnexion | bool
+
+- name: Signaler une clé de déconnexion absente
+  ansible.builtin.debug:
+    msg: >-
+      La clé org.gnome.SessionManager/logout-prompt est absente sur cette
+      version de GNOME ; le rôle ne la modifie pas.
+  when:
+    - fpga_bureau_desactiver_confirmation_deconnexion | bool
+    - "'logout-prompt' not in (fpga_bureau_session_keys.stdout_lines | default([]))"
+
+- name: Rechercher la clé des animations
+  ansible.builtin.command:
+    argv: [gsettings, list-keys, org.gnome.desktop.interface]
+  register: fpga_bureau_interface_keys
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: fpga_bureau_verrouiller_animations | bool
+
+- name: Signaler une clé d'animations absente
+  ansible.builtin.debug:
+    msg: La clé org.gnome.desktop.interface/enable-animations est absente ; elle ne sera pas verrouillée.
+  when:
+    - fpga_bureau_verrouiller_animations | bool
+    - "'enable-animations' not in (fpga_bureau_interface_keys.stdout_lines | default([]))"
+
+- name: Vérifier la liste optionnelle des extensions GNOME par défaut
+  ansible.builtin.assert:
+    that:
+      - fpga_bureau_extensions_par_defaut is sequence
+      - fpga_bureau_extensions_par_defaut is not string
+      - "'background-logo@fedorahosted.org' in fpga_bureau_extensions_par_defaut"
+    fail_msg: Inclure background-logo@fedorahosted.org dans la liste d'extensions par défaut.
+  when: fpga_bureau_definir_extensions_par_defaut | bool
+
+- name: Créer les répertoires de personnalisation
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ fpga_bureau_repertoire }}"
+    - /etc/dconf/profile
+    - /etc/dconf/db/local.d
+    - /etc/dconf/db/local.d/locks
+
+- name: Copier le fond d'écran
+  ansible.builtin.copy:
+    src: "{{ fpga_wallpaper_fichier }}"
+    dest: "{{ fpga_bureau_repertoire }}/{{ fpga_wallpaper_fichier }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copier le logo d'entreprise
+  ansible.builtin.copy:
+    src: "{{ fpga_logo_fichier }}"
+    dest: "{{ fpga_bureau_repertoire }}/{{ fpga_logo_fichier }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Vérifier si le profil dconf utilisateur existe
+  ansible.builtin.stat:
+    path: /etc/dconf/profile/user
+  register: fpga_bureau_profile_stat
+
+- name: Lire le profil dconf existant
+  ansible.builtin.slurp:
+    src: /etc/dconf/profile/user
+  register: fpga_bureau_profile_content
+  when: fpga_bureau_profile_stat.stat.exists
+
+- name: Créer un backend utilisateur uniquement s'il n'en existe aucun
+  ansible.builtin.lineinfile:
+    path: /etc/dconf/profile/user
+    line: user-db:user
+    insertbefore: BOF
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+  when: >-
+    not fpga_bureau_profile_stat.stat.exists or
+    (fpga_bureau_profile_content.content | default('') | b64decode |
+     regex_search('(?m)^(user-db:|service-db:)')) is none
+
+- name: Ajouter la base locale au profil sans effacer les autres bases
+  ansible.builtin.lineinfile:
+    path: /etc/dconf/profile/user
+    line: system-db:local
+    insertafter: '^(user-db:|service-db:)'
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configurer le bureau et le logo pour tous les utilisateurs
+  ansible.builtin.template:
+    src: 06_fpga_bureau.conf.j2
+    dest: /etc/dconf/db/local.d/99-fpga-bureau
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    fpga_wallpaper_uri: "{{ 'file://' ~ ((fpga_bureau_repertoire ~ '/' ~ fpga_wallpaper_fichier) | urlencode) }}"
+    fpga_logo_chemin: "{{ fpga_bureau_repertoire }}/{{ fpga_logo_fichier }}"
+
+- name: Verrouiller les réglages GNOME personnalisés
+  ansible.builtin.template:
+    src: 06_fpga_bureau_locks.j2
+    dest: /etc/dconf/db/local.d/locks/99-fpga-bureau
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Mettre à jour les bases dconf
+  ansible.builtin.command:
+    argv: [dconf, update]
+  changed_when: false
+
+- name: Rappeler les conditions d'application
+  ansible.builtin.debug:
+    msg:
+      - Déconnecter puis reconnecter la session graphique pour charger le profil et les valeurs système.
+      - Le logo de bureau est visible lorsque l'extension Background Logo est activée pour l'utilisateur.
+      - Aucune session graphique n'a été redémarrée automatiquement.

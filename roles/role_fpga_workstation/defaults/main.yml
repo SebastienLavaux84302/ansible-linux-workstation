@@ -1,0 +1,239 @@
+---
+# Exemples RHEL 9 x86_64 : remplacer par les identifiants visibles sur l'hôte.
+# Ajouter, selon les besoins, les identifiants des dépôts complémentaires
+# publiés et autorisés dans votre Satellite (EPEL, logiciels tiers, etc.).
+fpga_repos:
+  - rhel-9-for-x86_64-baseos-rpms
+  - rhel-9-for-x86_64-appstream-rpms
+# true : limite les transactions DNF à fpga_repos ; exige une liste non vide.
+fpga_exclusive_repos: false
+fpga_refresh_metadata: true
+fpga_diagnostic_packages:
+  - bash
+  - firefox
+  - vim-enhanced
+
+fpga_install_gnome: true
+fpga_gnome_group: "@Server with GUI"
+fpga_gnome_packages:
+  - gdm
+  - gnome-shell
+  - gnome-terminal
+  - nautilus
+  - firefox
+  - evince
+  - xorg-x11-server-Xorg
+  - xorg-x11-drivers
+  - xorg-x11-xauth
+  - xorg-x11-fonts-Type1
+fpga_install_devel_group: false
+fpga_devel_group:
+  - "@Development Tools"
+fpga_install_xrdp: true
+fpga_xrdp_packages:
+  - xrdp
+  - xrdp-selinux
+fpga_configure_firewall: true
+fpga_firewall_service: rdp
+fpga_set_graphical_target: true
+# Basculer immédiatement en mode graphique peut interrompre des services.
+fpga_isolate_graphical_target: false
+# true : affichage avant et après chaque paquet (transactions séparées).
+# false : installation groupée en une seule transaction DNF.
+fpga_package_progress: true
+fpga_packages:
+  - bash
+  - seahorse
+  - vim-enhanced
+  - bash-completion
+  - tmux
+  - tree
+  - dos2unix
+  - rsync
+  - cronie
+  - file
+  - gawk
+  - cpio
+  - numactl
+  - chrpath
+  - diffstat
+  - htop
+  - btop
+  - terminator
+  - tcpdump
+  - net-snmp
+  - net-snmp-utils
+  - xfsprogs
+  - lvm2
+  - samba-common
+  - ntfs-3g
+  - squashfs-tools
+  - git
+  - git-lfs
+  - git-subtree
+  - gitk
+  - git-cola
+  - meld
+  - gcc
+  - gcc-c++
+  - gcc-fortran
+  - clang
+  - clang-tools-extra
+  - make
+  - cmake
+  - bison
+  - flex
+  - byacc
+  - autoconf
+  - automake
+  - m4
+  - libtool
+  - patchelf
+  - gdb
+  - valgrind
+  - lttng-tools
+  - lttng-ust
+  - rpm-build
+  - rpmdevtools
+  - rpm-sign
+  - rpmlint
+  - openssl-devel
+  - libffi-devel
+  - sqlite-devel
+  - libburn-devel
+  - cppzmq-devel
+  - protobuf-devel
+  - protobuf-c-devel
+  - zlib-devel
+  - ncurses-devel
+  - pkgconf-pkg-config
+  - glibc.i686
+  - libgcc.i686
+  - libstdc++.i686
+  - glibc-devel.i686
+  - libstdc++-devel.i686
+  - zlib.i686
+  - ncurses-libs.i686
+  - python3
+  - python3-pip
+  - python3-devel
+  - python3-setuptools
+  - python3-virtualenv
+  - python3-GitPython
+  - python3-jinja2
+  - python3-pexpect
+  - python3-kerberos
+  - python3-subunit
+  - python3.13.x86_64
+  - python3.13-debug.x86_64
+  - python3.13-devel.x86_64
+  - python3.13-flit-core.noarch
+  - python3.13-freethreading.x86_64
+  - python3.13-freethreading-debug.x86_64
+  - python3.13-idle.x86_64
+  - python3.13-libs.x86_64
+  - python3.13-packaging.noarch
+  - python3.13-pip.noarch
+  - python3.13-pip-wheel.noarch
+  - python3.13-rpm.x86_64
+  - python3.13-setuptools.noarch
+  - python3.13-setuptools-wheel.noarch
+  - python3.13-test.x86_64
+  - python3.13-tkinter.x86_64
+  - python3.13-uwsgidecorators.x86_64
+  - rust
+  - cargo
+  - rust-src
+  - rust-analyzer
+  - java-25-openjdk
+  - java-25-openjdk-devel
+  - java-21-openjdk
+  - java-21-openjdk-devel
+  - java-17-openjdk
+  - java-17-openjdk-devel
+  - java-11-openjdk
+  - java-11-openjdk-devel
+  - java-1.8.0-openjdk
+  - java-1.8.0-openjdk-devel
+  - maven
+  - perl
+  - perl-devel
+  - libreoffice-core
+  - libreoffice-calc
+  - libreoffice-writer
+  - libreoffice-impress
+  - libreoffice-base
+  - libreoffice-draw
+  - libreoffice-graphicfilter
+  - libreoffice-data
+  - libreoffice-gtk3
+  - libreoffice-ogltrans
+  - libreoffice-pdfimport
+  - libreoffice-pyuno
+  - libreoffice-ure
+  - libreoffice-opensymbol-fonts
+  - libreoffice-langpack-en
+  - libreoffice-langpack-fr
+  - libreoffice-help-en
+  - libreoffice-help-fr
+  - libreoffice-x11
+  - chromium
+  - inkscape
+  - audacity
+  - gimp
+  - filezilla
+  - wine
+  - wine-core
+  - wine-common
+  - vlc
+  - ffmpeg
+  - gstreamer1-plugins-good
+  - gstreamer1-plugins-bad-free
+  - gstreamer1-plugins-ugly
+  - code
+  - texlive-scheme-basic
+  - texlive-latex
+  - texlive-latexconfig
+  - texlive-latex-fonts
+  - texlive-luatex
+  - texlive-collection-latexrecommended
+  - octave
+  - octave-devel
+  - graphviz
+  - intltool
+  - doxygen
+  - qemu-kvm
+  - qemu-img
+  - qemu-kvm-tools
+  - libvirt
+  - virt-install
+  - virt-viewer
+  - virt-top
+  - virt-manager
+  - libguestfs-tools
+  - edk2-ovmf
+  - podman
+  - podman-compose
+  - buildah
+  - skopeo
+  - fuse-overlayfs
+  - containers-common
+  - postgresql17
+  - postgresql17-server
+  - postgresql17-contrib
+  - postgresql17-libs
+  - ansible-core
+
+# Personnalisation du bureau : activer après ajout des fichiers dans files/.
+fpga_personnaliser_bureau: false
+fpga_wallpaper_fichier: wallpaper.png
+fpga_logo_fichier: logo.png
+fpga_bureau_repertoire: /usr/share/backgrounds/custom
+fpga_bureau_gestion_energie: true
+fpga_bureau_desactiver_confirmation_deconnexion: true
+fpga_bureau_verrouiller_animations: true
+# Facultatif : définir les extensions GNOME par défaut pour les nouveaux profils.
+# Cela remplace la liste système par défaut ; inclure toutes les extensions souhaitées.
+fpga_bureau_definir_extensions_par_defaut: false
+fpga_bureau_extensions_par_defaut:
+  - background-logo@fedorahosted.org

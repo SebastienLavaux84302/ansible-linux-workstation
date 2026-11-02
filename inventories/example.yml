@@ -1,0 +1,24 @@
+---
+# Exemple fictif. Copier et adapter dans un inventaire local privé.
+all:
+  children:
+    workstations:
+      hosts:
+        workstation-example:
+          ansible_host: workstation.example.invalid
+          ansible_user: deploy
+      vars:
+        # Identifiants donnés à titre d'exemple pour RHEL 9 x86_64.
+        # Ajouter les ID effectifs des dépôts Satellite requis.
+        fpga_repos:
+          - rhel-9-for-x86_64-baseos-rpms
+          - rhel-9-for-x86_64-appstream-rpms
+        fpga_install_gnome: false
+        fpga_install_xrdp: false
+        fpga_configure_firewall: false
+        fpga_set_graphical_target: false
+        fpga_personnaliser_bureau: false
+        fpga_install_devel_group: false
+        fpga_packages:
+          - bash
+          - vim-enhanced

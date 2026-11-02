@@ -1,0 +1,46 @@
+- name: "Combine all dictionnaries in_dict, inv_all, inv_gv, inv_hv"
+  set_fact:
+    "dict_{{ ansible_role_name }}": >-
+      {{
+        vars['in_dict_' ~ role_name] | default({})
+        | combine(vars['inv_all_dict_' ~ role_name] | default({}), recursive=True)
+        | combine(vars['inv_gv_dict_' ~ role_name] | default({}), recursive=True)
+        | combine(vars['inv_hv_dict_' ~ role_name] | default({}), recursive=True)
+      }}
+  tags:
+    - always
+
+- name: "Debug in_dict_{{ ansible_role_name }}"
+  debug:
+    var: "in_dict_{{ ansible_role_name }}"
+  tags:
+    - combine_debug
+    - never
+
+- name: "Debug in_all_dict_{{ ansible_role_name }}"
+  debug:
+    var: "inv_all_dict_{{ ansible_role_name }}"
+  tags:
+    - combine_debug
+    - never
+
+- name: "Debug in_gv_dict_{{ ansible_role_name }}"
+  debug:
+    var: "inv_gv_dict_{{ ansible_role_name }}"
+  tags:
+    - combine_debug
+    - never
+
+- name: "Debug in_hv_dict_{{ ansible_role_name }}"
+  debug:
+    var: "inv_hv_dict_{{ ansible_role_name }}"
+  tags:
+    - combine_debug
+    - never
+
+- name: "Debug dict_{{ ansible_role_name }}"
+  debug:
+    var: "dict_{{ ansible_role_name }}"
+  tags:
+    - combine_debug
+    - never

@@ -1,0 +1,34 @@
+---
+- name: Installer le groupe Development Tools si demandé
+  ansible.builtin.dnf:
+    name: "{{ fpga_devel_group }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  when:
+    - fpga_install_devel_group | bool
+    - fpga_devel_group | length > 0
+
+- name: Installer les paquets avec suivi individuel
+  ansible.builtin.include_tasks:
+    file: install_one_package.yml
+    apply:
+      tags: [packages]
+  loop: "{{ fpga_packages }}"
+  loop_control:
+    loop_var: fpga_current_package
+    extended: true
+    label: "{{ ansible_loop.index }}/{{ ansible_loop.length }} - {{ fpga_current_package }}"
+  when:
+    - fpga_package_progress | bool
+    - fpga_packages | length > 0
+
+- name: Installer les paquets en une transaction groupée
+  ansible.builtin.dnf:
+    name: "{{ fpga_packages }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  when:
+    - not (fpga_package_progress | bool)
+    - fpga_packages | length > 0

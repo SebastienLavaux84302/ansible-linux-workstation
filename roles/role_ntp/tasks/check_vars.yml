@@ -1,0 +1,12 @@
+---
+- name: "Check: Mandatory vars"
+  assert:
+    that:
+      - dict_role_ntp.servers| length > 0
+    fail_msg: "failed"
+  register: result_assert
+  ignore_errors: yes
+
+- name: Set continue_role based on assert result
+  set_fact:
+    continue_role: "{{ not result_assert.failed }}"

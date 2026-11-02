@@ -1,0 +1,32 @@
+---
+- name: Vérifier la règle RDP permanente
+  ansible.builtin.command:
+    argv: [firewall-cmd, --permanent, "--query-service={{ fpga_firewall_service }}"]
+  register: fpga_firewall_permanent
+  changed_when: false
+  failed_when: fpga_firewall_permanent.rc not in [0, 1]
+  check_mode: false
+  when: fpga_configure_firewall | bool
+
+- name: Activer la règle RDP permanente si nécessaire
+  ansible.builtin.command:
+    argv: [firewall-cmd, --permanent, "--add-service={{ fpga_firewall_service }}"]
+  when:
+    - fpga_configure_firewall | bool
+    - fpga_firewall_permanent.rc == 1
+
+- name: Vérifier la règle RDP active
+  ansible.builtin.command:
+    argv: [firewall-cmd, "--query-service={{ fpga_firewall_service }}"]
+  register: fpga_firewall_runtime
+  changed_when: false
+  failed_when: fpga_firewall_runtime.rc not in [0, 1]
+  check_mode: false
+  when: fpga_configure_firewall | bool
+
+- name: Activer la règle RDP immédiatement si nécessaire
+  ansible.builtin.command:
+    argv: [firewall-cmd, "--add-service={{ fpga_firewall_service }}"]
+  when:
+    - fpga_configure_firewall | bool
+    - fpga_firewall_runtime.rc == 1

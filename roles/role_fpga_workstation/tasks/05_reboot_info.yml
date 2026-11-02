@@ -1,0 +1,9 @@
+---
+- name: Afficher les options sélectionnées
+  ansible.builtin.debug:
+    msg:
+      - "Option GNOME : {{ fpga_install_gnome | bool }}"
+      - "Option xrdp : {{ fpga_install_xrdp | bool }}"
+      - "Option pare-feu : {{ fpga_configure_firewall | bool }}"
+      - "Cible graphique au démarrage : {{ fpga_set_graphical_target | bool }}"
+      - "Consulter le résultat de chaque tâche ; un redémarrage peut être nécessaire."

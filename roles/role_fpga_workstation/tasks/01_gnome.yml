@@ -1,0 +1,44 @@
+---
+- name: Installer l'environnement GNOME
+  ansible.builtin.dnf:
+    name: "{{ fpga_gnome_group }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  when: fpga_install_gnome | bool
+
+- name: Installer les paquets GNOME complémentaires
+  ansible.builtin.dnf:
+    name: "{{ fpga_gnome_packages }}"
+    state: present
+    enablerepo: "{{ fpga_repos }}"
+    disablerepo: "{{ ['*'] if (fpga_exclusive_repos | bool) else [] }}"
+  when:
+    - fpga_install_gnome | bool
+    - fpga_gnome_packages | length > 0
+
+- name: Lire la cible systemd par défaut
+  ansible.builtin.command:
+    argv: [systemctl, get-default]
+  register: fpga_default_target
+  changed_when: false
+  check_mode: false
+  when:
+    - fpga_install_gnome | bool
+    - fpga_set_graphical_target | bool
+
+- name: Définir la cible graphique au prochain démarrage
+  ansible.builtin.command:
+    argv: [systemctl, set-default, graphical.target]
+  when:
+    - fpga_install_gnome | bool
+    - fpga_set_graphical_target | bool
+    - fpga_default_target.stdout | default('') | trim != 'graphical.target'
+
+- name: Basculer immédiatement vers la cible graphique si demandé
+  ansible.builtin.command:
+    argv: [systemctl, isolate, graphical.target]
+  when:
+    - fpga_install_gnome | bool
+    - fpga_isolate_graphical_target | bool
+  changed_when: true

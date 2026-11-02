@@ -1,0 +1,19 @@
+- name: reload facts
+  setup:
+
+- name: "Set path and version"
+  set_fact:
+    os_path: "{{ ansible_distribution | lower }}"
+    os_version: "{{ ansible_distribution_major_version }}"
+    tasks_path: "{{ role_path }}/tasks"
+
+- name: "Find first available default task file"
+  set_fact:
+    found_task_file: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ os_path }}/{{ os_version }}/default.yml"
+        - "{{ os_path }}/default.yml"
+      paths:
+        - "{{ tasks_path }}"

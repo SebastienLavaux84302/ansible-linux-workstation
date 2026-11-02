@@ -1,0 +1,24 @@
+- name: Package chronyd
+  package:
+    name: chrony
+    state: latest
+  become: true
+
+- name: Comment pool line
+  replace:
+    path: /etc/chrony.conf
+    regexp: '^pool(?!.*ANSIBLE)'
+    replace: '# \g<0>'
+  become: true
+  notify: "reload ntp"
+
+- name: Add NTP servers
+  blockinfile:
+    path: /etc/chrony.conf
+    marker: "# {mark} ANSIBLE MANAGED"
+    block: |
+      {% for pool in dict_role_ntp.servers %}
+      pool {{ pool }} iburst
+      {% endfor %}
+  become: true
+  notify: "reload ntp"
