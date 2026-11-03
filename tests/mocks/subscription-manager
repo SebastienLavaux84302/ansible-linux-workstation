@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""Simulateur minimal de subscription-manager, utilisé uniquement par les tests."""
+
+import json
+import os
+import sys
+from pathlib import Path
+
+state_path = Path(os.environ["TEST_SUBSCRIPTION_STATE"])
+log_path = Path(os.environ["TEST_SUBSCRIPTION_LOG"])
+state = json.loads(state_path.read_text(encoding="utf-8"))
+args = sys.argv[1:]
+with log_path.open("a", encoding="utf-8") as log:
+    log.write(json.dumps(args) + "\n")
+
+if args == ["repos", "--list"]:
+    repos = state["available"]
+elif args == ["repos", "--list-enabled"]:
+    repos = [repo for repo in state["available"] if repo in state["enabled"]]
+elif len(args) == 2 and args[0] == "repos" and args[1].startswith("--enable="):
+    repo = args[1].split("=", 1)[1]
+    if repo not in state["available"]:
+        print("Dépôt fictif inconnu", file=sys.stderr)
+        sys.exit(1)
+    state["enabled"] = sorted(set(state["enabled"]) | {repo})
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    print("Dépôt fictif activé")
+    sys.exit(0)
+else:
+    print("Commande inattendue dans le simulateur", file=sys.stderr)
+    sys.exit(2)
+
+for repo in repos:
+    print(f"Repo ID:   {repo}\nRepo Name: Example {repo}\n")

@@ -15,7 +15,7 @@ Le rôle `role_fpga_workstation` permet notamment de :
 
 L'hôte doit avoir accès à Satellite ou à une Capsule, et les RPM **ainsi que leurs dépendances** doivent être présents dans la Content View et l'environnement utilisés. Le projet ne fournit ni dépôts ni logiciels tiers.
 
-Trois autres rôles issus du projet initial sont inclus pour étude : `role_ntp` (chrony), `role_change_patch_management_timer` (dnf-automatic) et `role_kernel` (configuration dracut relative à l'image de secours). Ils ne sont pas inclus dans le playbook d'exemple et doivent être revus et testés avant utilisation.
+Trois autres rôles sont proposés pour étude : `role_ntp` (chrony), `role_change_patch_management_timer` (dnf-automatic) et `role_kernel` (configuration dracut relative à l'image de secours). Ils ne sont pas inclus dans le playbook d'exemple et doivent être revus et testés avant utilisation.
 
 ## Organisation
 
@@ -95,9 +95,17 @@ Pour personnaliser le bureau, placer ses propres fichiers `wallpaper.png` et `lo
 
 Ne pas committer d'inventaire réel, mot de passe, jeton, clé privée, base de mots de passe, image interne ou fichier contenant des noms, adresses ou chemins propres à une infrastructure. Ansible Vault peut aider à protéger les secrets, mais les fichiers chiffrés ne doivent pas être publiés par défaut. Le fichier `.gitignore` ne protège pas les données déjà suivies par Git et ne remplace pas une revue avant publication.
 
-Un [guide de publication sur GitHub](docs/publication-github.md) décrit les étapes de revue et de création d’un nouveau dépôt.
+Un [guide de revue avant publication](docs/publication-github.md) rappelle les vérifications à effectuer avant de partager une modification.
 
-Aucun historique Git du projet d'origine n'était présent dans les fichiers utilisés pour préparer cette sélection. Cette version doit être importée dans un nouveau dépôt sans réutiliser d'historique non audité.
+## Tests locaux du rôle de dépôts
+
+Avec Python et `ansible-playbook` disponibles sur le contrôleur :
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+Les tests utilisent un simulateur de `subscription-manager` dans un répertoire temporaire : aucun dépôt système n'est activé. Ils vérifient le mode simulation, l'activation par nom exact, une seconde exécution sans changement et le rejet de configurations invalides. Si Ansible est absent, ils sont indiqués comme ignorés. Ces contrôles ne remplacent pas un test sur RHEL et Satellite.
 
 ## Assistance par intelligence artificielle
 

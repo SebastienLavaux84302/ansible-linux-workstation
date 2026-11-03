@@ -1,60 +1,35 @@
-# Publier la sélection sur GitHub
+# Revoir une modification avant publication
 
-Cette page suppose que le contenu du dossier a été relu, que la personne qui publie a le droit de le faire et que les paramètres sont adaptés à un usage public. Aucun historique Git précédent n'est fourni avec cette sélection.
+Ce dépôt est un projet personnel expérimental. Avant de publier une nouvelle contribution, vérifier que son contenu est compréhensible, testable et peut être partagé.
 
-## 1. Vérifier les données
+## 1. Relire les fichiers
 
-Relire le README et les rôles. Ne pas ajouter de vrais inventaires, données de connexion, images internes, fichiers chiffrés, fichiers de configuration spécifiques ou installateurs de tiers. Vérifier aussi les noms de fichiers et les commentaires : une information peut permettre d'identifier un environnement sans être un mot de passe.
+- Utiliser des exemples fictifs pour les inventaires, adresses, noms de domaine et identifiants.
+- Ne pas ajouter de mots de passe, jetons, clés privées, certificats internes, images internes ni journaux de machines réelles.
+- Relire aussi les commentaires, captures, noms de fichiers et chemins : ils peuvent révéler des informations propres à un environnement.
+- Vérifier le droit de partager les contributions et les éventuelles dépendances de tiers.
 
-La configuration `.gitignore` couvre quelques cas courants, mais ce n'est pas un outil de détection de secrets et elle n'enlève pas des fichiers déjà suivis par Git. En cas d'exposition d'un véritable secret, le révoquer ou le renouveler et traiter l'historique selon la procédure de l'hébergeur.
+La configuration `.gitignore` couvre certains fichiers locaux, mais elle ne détecte pas les secrets et ne retire pas les fichiers déjà suivis. Si un véritable secret a été exposé, le révoquer ou le renouveler et traiter également l'historique.
 
-## 2. Préparer un nouveau dépôt
+## 2. Vérifier la modification
 
-Dans un terminal, depuis ce dossier, initialiser un **nouveau** dépôt :
-
-```bash
-git init -b main
-```
-
-Configurer une identité Git adaptée à un dépôt public. Remplacer les deux valeurs ci-dessous par son propre pseudo et une adresse associée au compte GitHub, par exemple son adresse `noreply` personnelle :
+Depuis la racine du dépôt, examiner les fichiers préparés :
 
 ```bash
-git config --local user.name "VOTRE_PSEUDO"
-git config --local user.email "VOTRE_ADRESSE_NOREPLY_GITHUB"
-```
-
-Préparer les fichiers de cette sélection, puis examiner exactement ce qui va être commité :
-
-```bash
-git add -- .gitignore README.md ansible.cfg docs inventories/example.yml playbooks roles
 git status --short
 git diff --cached --stat
 git diff --cached
 git diff --cached --check
 ```
 
-Si une donnée ne doit pas être publiée, la retirer de la sélection et reprendre la revue avant de créer le commit. Quand tout est prêt :
+Exécuter les [tests décrits dans le README](../README.md#tests-locaux-du-rôle-de-dépôts), documenter les vérifications réalisées et préciser celles qui restent à effectuer sur une cible RHEL ou Satellite.
+
+## 3. Contrôler le commit
+
+Utiliser une identité Git adaptée à un dépôt public. GitHub propose une adresse personnelle `noreply` si l'on ne souhaite pas exposer son adresse habituelle. Après le commit :
 
 ```bash
-git commit -m "Initial public Ansible workstation roles"
 git log -1 --format='%an <%ae>'
 ```
 
-Vérifier que l'identité affichée est bien celle souhaitée. Un compte GitHub public, son pseudo et ses commits sont visibles ; utiliser une adresse `noreply` n'anonymise pas le compte.
-
-## 3. Créer et alimenter le dépôt GitHub
-
-Dans GitHub, créer sur son compte personnel un dépôt vide nommé par exemple `ansible-linux-workstation`. Choisir sa visibilité seulement après avoir terminé la revue ; pour le publier, sélectionner **Public**. Ne pas préremplir le dépôt distant avec un README si le premier commit existe déjà localement.
-
-Remplacer `VOTRE_COMPTE` dans les commandes suivantes par son identifiant GitHub :
-
-```bash
-git remote add origin https://github.com/VOTRE_COMPTE/ansible-linux-workstation.git
-git push -u origin main
-```
-
-Utiliser le mode d'authentification GitHub habituel. Ne pas inscrire de mot de passe ou de jeton dans l'URL, le README ou l'historique de commandes. Vérifier ensuite les fichiers visibles sur GitHub et activer les protections adaptées à son compte.
-
-## 4. Ajouter d'autres rôles
-
-La sélection actuelle ne représente pas tous les rôles du projet initial. Pour chaque ajout : revoir son contenu et ses noms de fichiers, remplacer les paramètres réels par des variables ou exemples fictifs, vérifier les droits de redistribution de ses dépendances et installateurs, tester en environnement dédié, puis analyser de nouveau les modifications avant publication.
+Une adresse `noreply` masque l'adresse personnelle utilisée dans le commit ; elle ne rend pas le compte anonyme. Après publication, relire les fichiers tels qu'ils apparaissent sur GitHub.
